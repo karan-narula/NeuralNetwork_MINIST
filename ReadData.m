@@ -19,8 +19,8 @@
 %showing the images being correspond to the labels correctly. It is an
 %additional parameter and is not necessary to be specified in this function
 
-function [X,Y, images] = ReadData(varargin)
-if(nargin > 0)
+function [X,Y, images] = ReadData(scale,varargin)
+if(nargin > 1)
     flag_debug = varargin{1};
 else
     flag_debug = 0;
@@ -45,12 +45,12 @@ num_item = fread(fileID, 1, 'int32');
 num_rows = fread(fileID, 1, 'int32');
 %fourth, 32 bit integer specifying the number of columns
 num_columns = fread(fileID, 1, 'int32');
-X = zeros(num_rows*num_columns,num_item);
-images = zeros(num_rows,num_columns,num_item);
+X = zeros(num_rows*num_columns*scale^2,num_item);
+images = zeros(num_rows*scale,num_columns*scale,num_item);
 %iteratively read an image at a time
 for i =1:num_item
-   images(:,:,i) = fread(fileID, [num_rows,num_columns], 'uint8')';
-   X(:,i) = double(reshape(images(:,:,i)',[1,num_rows*num_columns]));
+   images(:,:,i) = imresize(fread(fileID, [num_rows,num_columns], 'uint8')', scale);
+   X(:,i) = double(reshape(images(:,:,i)',[1,num_rows*num_columns*scale^2]));
 end
 %normalise X to be between 0 and 1
 X = X/255;
@@ -82,8 +82,8 @@ if(flag_debug)
        imagesc(flipud(images(:,:,image_no(i))));
        colormap gray;
        title(['The label for this image is ',num2str(Y(image_no(i)))]);
-       set(gca, 'Xlim',[1,num_columns]);
-       set(gca, 'Ylim', [1,num_rows]);
+       set(gca, 'Xlim',[1,num_columns*scale]);
+       set(gca, 'Ylim', [1,num_rows*scale]);
        axis off;
    end
 end
