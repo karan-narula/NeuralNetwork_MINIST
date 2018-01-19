@@ -10,7 +10,7 @@ rng(seed);
 filename = 'Training.mat';
 
 %scale for resizing the image, scale<=1; scale = 1 -> image would be the original size
-scale = 0.5;
+scale = 1;
 
 %read the data if it hasn't been read before
 if(exist(filename, 'file') ~=2)
@@ -33,21 +33,22 @@ Y_test = Y(:, ordering(num_tests+1:end));
 
 
 %define some variables for neural network training 
-batch_size = 10;
+batch_size = 5;
 num_epochs = 10;
-eta = 3.0;
-neurons = [size(X_test,1),10,10];
+eta = 3;
+neurons = [size(X_test,1),30,10];
 
 %train the neural network with SGD (Stochastic Gradient Descent)
 rng(seed);
-% [NN] = NeuralNetworkTraining(neurons, num_epochs, batch_size, eta, X_train, X_test, Y_train, Y_test);
+[NN] = NeuralNetworkTraining(neurons, num_epochs, batch_size, eta, X_train, X_test, Y_train, Y_test);
 
-%additional parameters for UKF
-epsilon = 0.001; %to initialize P0 = (1/episolon)*I
-qk = 1e-5; %for the diagonal Q matrix; Q = qk*I
+%additional parameters for Ensemble Kalman Filter (cheap enough to validate with this high dimensional example)
+epsilon = 1e-1; %to initialize P0 = (1/episolon)*I
+qk = 1e-4; %for the diagonal Q matrix; Q = qk*I
+num_ens = 150; %number of ensemble members
 rng(seed);
-[NN_ukf] = NeuralNetworkTrainingCKF(neurons, num_epochs, batch_size, eta, epsilon, qk, X_train, X_test, Y_train, Y_test);
+[NN_enkf] = NeuralNetworkTrainingEnKF(neurons, num_epochs, batch_size, eta, epsilon, qk, num_ens, X_train, X_test, Y_train, Y_test);
 
 
 %optional, save the structure into the mat file
-save('Training.mat', 'NN', 'NN_ukf', 'images', 'X', 'Y');
+save('Training.mat', 'NN', 'NN_enkf', 'images', 'X', 'Y');
